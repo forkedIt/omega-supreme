@@ -73,7 +73,7 @@ module.exports = function omega(options) {
     req.on('data', function data(chunk) {
       buff += chunk;
     }).once('end', function end() {
-      parse(primus, buff, res);
+      parse(primus, buff, req, res);
     });
   }
 
@@ -93,7 +93,7 @@ module.exports = function omega(options) {
  * @param {Response} res HTTP response.
  * @api private
  */
-function parse(primus, raw, res) {
+function parse(primus, raw, req, res) {
   var called = 0
     , data
     , err;
@@ -125,27 +125,33 @@ function parse(primus, raw, res) {
   // All:    Broadcast the message to every single connected spark if no
   //         `data.sparks` has been provided.
   //
-  if (Array.isArray(data.sparks)) {
-    data.sparks.forEach(function each(id) {
-      var spark = primus.spark(id);
-
-      if (spark) {
-        spark.write(data.msg);
-        called++;
-      }
-    });
-  } else if ('string' === typeof data.sparks && data.sparks) {
-    var spark = primus.spark(data.sparks);
-
+  var sendMessage = function(spark) {
     if (spark) {
-      spark.write(data.msg);
+      if (req && req.query && req.query.primus) {
+        spark.emit('data', data.msg);
+      }
+      else {
+        spark.write(data.msg);
+      }
       called++;
     }
+  };
+
+  if (Array.isArray(data.sparks)) {
+    data.sparks.forEach(function each(id) {
+      sendMessage(primus.spark(id));
+    });
+  } else if ('string' === typeof data.sparks && data.sparks) {
+    sendMessage(primus.spark(data.sparks));
   } else {
     primus.forEach(function each(spark) {
-      spark.write(data.msg);
-      called++;
+      sendMessage(spark);
     });
+  }
+
+  // Emit the data to the main primus so custom data handling can occur.
+  if (!called) {
+    primus.emit('data', data.msg);
   }
 
   res.statusCode = 200;
