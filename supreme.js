@@ -47,7 +47,7 @@ supreme.server = function server(primus, options) {
   //
   // Load the middleware so we can intercept messages.
   //
-  primus.before('omega-supreme', require('./omega'), options, index);
+  primus.use('omega-supreme', require('./omega'), options, index);
 
   /**
    * Forward a message to a given server set.
@@ -63,6 +63,7 @@ supreme.server = function server(primus, options) {
     servers = (!Array.isArray(servers) ? [servers] : servers).filter(Boolean);
 
     var type = 'broadcast'
+      , local = false
       , calls = 0
       , spark;
 
@@ -93,6 +94,10 @@ supreme.server = function server(primus, options) {
         return !spark;
       });
 
+      //
+      // If no more sparks are left, then we finished with just local sparks.
+      //
+      local = !sparks.length;
       type = 'sparks';
     } else if (sparks) {
       spark = primus.spark(sparks);
@@ -100,6 +105,10 @@ supreme.server = function server(primus, options) {
       if (spark) {
         spark.write(msg);
         sparks = '';
+        //
+        // Just one local spark was given.
+        //
+        local = true;
         calls++;
       }
 
@@ -109,13 +118,18 @@ supreme.server = function server(primus, options) {
         spark.write(msg);
         calls++;
       });
+      //
+      // Since there are no sparks, having no servers means *local* broadcast
+      // only.
+      //
+      local = !servers.length;
     }
 
     //
     // Everything was broad casted locally, we can bail out early, which is
     // naaaais <-- say out loud with Borat's voice.
     //
-    if (type !== 'broadcast' && !sparks.length) return fn(undefined, {
+    if (local) return fn(undefined, {
       ok: true,
       send: calls,
       local: true

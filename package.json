@@ -1,10 +1,10 @@
 {
   "name": "omega-supreme",
-  "version": "1.0.0",
+  "version": "2.1.1",
   "description": "Known for his great strength and greater courage, Omega Supreme is the Autobots’ last line of defense against the Decepticons",
   "main": "index.js",
   "scripts": {
-    "coverage": "istanbul cover _mocha",
+    "coverage": "istanbul cover node_modules/mocha/bin/_mocha",
     "test": "mocha",
     "test-travis": "istanbul cover _mocha --report lcovonly"
   },
@@ -27,17 +27,17 @@
   },
   "homepage": "https://github.com/primus/omega-supreme",
   "dependencies": {
-    "async": "1.5.x",
-    "request": "2.69.x",
-    "routable": "0.0.x"
+    "async": "~2.5.0",
+    "request": "~2.83.0",
+    "routable": "~0.0.5"
   },
   "devDependencies": {
-    "assume": "1.4.x",
-    "binary-pack": "1.0.x",
-    "istanbul": "0.4.x",
-    "mocha": "2.4.x",
-    "pre-commit": "1.1.x",
-    "primus": "5.0.x",
-    "ws": "1.0.x"
+    "assume": "~1.5.0",
+    "binary-pack": "~1.0.2",
+    "istanbul": "~0.4.5",
+    "mocha": "~4.0.0",
+    "pre-commit": "~1.2.0",
+    "primus": "~7.1.0",
+    "ws": "~3.2.0"
   }
 }
